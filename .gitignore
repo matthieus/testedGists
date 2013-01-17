@@ -1,0 +1,4 @@
+.ensime*
+.classpath
+.project
+target/
