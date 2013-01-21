@@ -1,5 +1,6 @@
 package testedGists;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FilterInputStream;
@@ -15,10 +16,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
 
 import com.google.common.io.ByteStreams;
 
@@ -76,7 +73,7 @@ public class TransformFileInZip {
    * @param transformer
    *          the function object which will be applied to the target file
    */
-  public static void transformFile(ZipFile zipFile, String targetZipFilePath,
+  public static boolean transformFile(ZipFile zipFile, String targetZipFilePath,
       String fileToTransformPath, StreamTransformer transformer) {
     long start = System.currentTimeMillis();
     System.out.println("Processing zip file \"" + zipFile.getName() + "\".");
@@ -90,11 +87,15 @@ public class TransformFileInZip {
       if (!transformZipStream(zipInputStream, zipOutputStream,
           fileToTransformPath, transformer)) {
         System.err
-            .println("The given file has not been found in the given zip file. No transformation applied.");
+            .println("The given file has not been found in the given zip file. No transformation applied. No file created.");
+        zipOutputStream.close();
+        new File(targetZipFilePath).delete();
+        return false;
       }
       System.out.println("New zip file: \"" + targetZipFilePath + "\"");
       System.out.println("Execution time: "
           + (System.currentTimeMillis() - start) + "ms");
+      return true;
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
@@ -102,7 +103,7 @@ public class TransformFileInZip {
         zipInputStream.close();
         zipOutputStream.close();
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException("Stream not closed", e);
       }
     }
   }
@@ -134,7 +135,7 @@ public class TransformFileInZip {
                                                           // more zips to dig in
             transformer.apply(new ZipGuard(zipInputStream), zipOutputStream);
             applied = true;
-          } else { // we are digging into more zip files
+          } else { // zipEntryName is an embedded zip, we need to digging into more zip files
             applied = transformZipStream(new ZipInputStream(zipInputStream),
                 new ZipOutputStream(zipOutputStream),
                 fileToTransformPath.substring(zipEntryName.length() + 1),
