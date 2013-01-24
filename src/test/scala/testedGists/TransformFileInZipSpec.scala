@@ -24,6 +24,9 @@ class TransformFileInZipSpec extends Specification {
       "try to transform a non existing file in the zip, will not generate a new zip"         ! context().e5 ^
       "return true when transforming successfully the file in zip"                           ! context().e6 ^
       "return false when trying to transform a non existing file in the zip"                 ! context().e7 ^
+      // below takes around 3 minutes to run, mainly a check to verify memory consumption
+      // "remove 'TO_DELETE' in a small file among a lot of large files in zip"                 ! context().e8 ^
+
                                                                                              Step(deleteZipFixture) ^
                                                                                              end
 
@@ -199,6 +202,65 @@ class TransformFileInZipSpec extends Specification {
             }
           }
         }) must_== false
+    }
+
+    def e8 = {
+      val start = System.currentTimeMillis
+      val largeFixture = safeZipBuilder(File.createTempFile("largeFixture", "")) {
+        _
+        .startEntry("TO_BE_FOUND.txt")
+          .print("blob TO_DELETE blob") // same as the fixture except here where we removed 'TO_DELETE'
+        .endEntry
+        .startEntry("someBigFile.txt")
+          .write(pw => (1 to 10000000).foreach(i => {
+                                                      pw.println("And"+i+" here "+i+" is "+i+" another "+i+" line"+i)
+                                                      if (i % 100000 == 0) pw.flush
+                                                    }))
+        .endEntry
+        .startZipEntry("ZIP_TO_BE_FOUND_2_1.zip")
+          .startEntry("someFile.txt")
+            .print("someContent")
+          .endEntry
+          .startEntry("TO_BE_FOUND_2.txt")
+            .print("""|first line
+                      |second TO_DELETE_2 line""".stripMargin)
+          .endEntry
+        .endEntry
+        .startZipEntry("ZIP_TO_BE_FOUND_3_1.zip")
+          .startZipEntry("somedirectory/ZIP_TO_BE_FOUND_3_2.zip")
+            .startZipEntry("ZIP_TO_BE_FOUND_3_3.zip")
+              .startEntry("someFile.txt")
+                .print("someContent")
+              .endEntry
+              .startEntry("somedirectory/TO_BE_FOUND_3.txt")
+                .print("""|first line
+                          |second  line
+                          |third line
+                          |""".stripMargin)
+                .write(pw => (1 to 10000000).foreach(i => {
+                                                            pw.println("And"+(1000000-i)+" here "+(1000000-i)+" is "+i+" another "+(100000-i)+" line"+i)
+                                                            if (i % 100000 == 0) pw.flush
+                                                          }))
+              .endEntry
+            .endEntry
+          .endEntry
+          .startEntry("someFile.txt")
+            .print("someContent")
+          .endEntry
+        .endEntry
+        .buildZip
+      }
+      println("Creation lasted: "+(System.currentTimeMillis - start))
+      TransformFileInZip.transformFile(largeFixture, tempFileResult.getAbsolutePath(), "ZIP_TO_BE_FOUND_2_1.zip/TO_BE_FOUND_2.txt",
+        new StreamTransformer() {
+          override def apply(input: InputStream, output: OutputStream) {
+            transformContent(input, output) { (printWriter, content) =>
+              printWriter.write(content.replaceAll("TO_DELETE_2", ""))
+            }
+          }
+        })
+      val content = contentAsString(new ZipFile(tempFileResult), "ZIP_TO_BE_FOUND_2_1.zip/TO_BE_FOUND_2.txt")
+      content.lines.drop(1).next must_== "second  line"
     }
   }
 }
