@@ -4,7 +4,6 @@ import org.specs2._
 import specification.Step
 import java.io._
 import testedGists.TransformFileInZip.StreamTransformer
-import testedGists.TransformFileInZip.ZipGuard
 import testedGists.ZipUtils._
 import java.util.Scanner
 import java.util.zip._
@@ -26,7 +25,9 @@ class TransformFileInZipSpec extends Specification {
       "return false when trying to transform a non existing file in the zip"                 ! context().e7 ^
       // below takes around 3 minutes to run, mainly a check to verify memory consumption
       // "remove 'TO_DELETE' in a small file among a lot of large files in zip"                 ! context().e8 ^
-
+      """close both Streams during the transform, verify that the new zip still contains
+      the files copied after the transformation. (important for XML transformation as XML
+      libs tend to close streams for you)"""                                                 ! context().e9 ^
                                                                                              Step(deleteZipFixture) ^
                                                                                              end
 
@@ -134,7 +135,7 @@ class TransformFileInZipSpec extends Specification {
       safeZipBuilder(tempFileExpected) {
         _
         .startEntry("TO_BE_FOUND.txt")
-          .print("blob TO_DELETE blob") // same as the fixture except here where we removed 'TO_DELETE'
+          .print("blob TO_DELETE blob")
         .endEntry
         .startEntry("someFile.txt")
           .print("someContent")
@@ -154,7 +155,7 @@ class TransformFileInZipSpec extends Specification {
               .startEntry("someFile.txt")
                 .print("someContent")
               .endEntry
-              .startEntry("somedirectory/TO_BE_FOUND_3.txt")
+              .startEntry("somedirectory/TO_BE_FOUND_3.txt")  // 'TO_DELETE_3' is expected to be removed
                 .print("""|first line
                           |second  line
                           |third line""".stripMargin)
@@ -261,6 +262,20 @@ class TransformFileInZipSpec extends Specification {
         })
       val content = contentAsString(new ZipFile(tempFileResult), "ZIP_TO_BE_FOUND_2_1.zip/TO_BE_FOUND_2.txt")
       content.lines.drop(1).next must_== "second  line"
+    }
+
+    def e9 = {
+       TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_FOUND.txt",
+        new StreamTransformer() {
+          override def apply(input: InputStream, output: OutputStream) {
+            transformContent(input, output) { (printWriter, content) =>
+              printWriter.write(content.replaceAll("TO_DELETE", ""))
+            }
+            input.close
+            output.close
+          }
+        })
+      contentAsString(new ZipFile(tempFileResult), "ZIP_TO_BE_FOUND_3_1.zip/someFile.txt") must_== "someContent"
     }
   }
 }

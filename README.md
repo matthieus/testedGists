@@ -1,4 +1,8 @@
 testedGists
 ===========
 
-Useful enough code for a future copy/paste, but not enough for a full blown library. Tested because I prefer code that runs.
+Pretty standard code that I don't want to write again. Enough lines to deserve tests, but not enough for a full blown library.
+Please copy/paste if interested.
+
+Samples:
+//TODO!!!

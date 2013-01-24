@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FilterInputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,7 +25,7 @@ import com.google.common.io.Closeables;
 public class TransformFileInZip {
 
   private static final Logger logger = LoggerFactory.getLogger(TransformFileInZip.class);
-  
+
   /**
    * Allows defining the transformation to apply to the file being transformed
    */
@@ -36,8 +37,8 @@ public class TransformFileInZip {
    * Wrapper around a ZipInputStream to avoid the xml parsing to close the
    * stream
    */
-  public static class ZipGuard extends FilterInputStream {
-    public ZipGuard(InputStream is) {
+  public static class ZipInputGuard extends FilterInputStream {
+    public ZipInputGuard(InputStream is) {
       super(is);
     }
 
@@ -47,6 +48,24 @@ public class TransformFileInZip {
         ((ZipInputStream) in).closeEntry();
       else
         in.close();
+    }
+  }
+
+  /**
+   * Wrapper around a ZipInputStream to avoid the xml parsing to close the
+   * stream
+   */
+  public static class ZipOutputGuard extends FilterOutputStream {
+    public ZipOutputGuard(OutputStream os) {
+      super(os);
+    }
+
+    @Override
+    public void close() throws IOException {
+      if (out instanceof ZipOutputStream)
+        ((ZipOutputStream) out).closeEntry();
+      else
+        out.close();
     }
   }
 
@@ -63,7 +82,7 @@ public class TransformFileInZip {
    * </ul>
    * fileToTransformPath sample:
    * <code>uwb-war-4.7-SNAPSHOT.war/WEB-INF/web.xml</code>
-   * 
+   *
    * @param zipFile
    * @param targetZipFilePath
    *          the path of the new zip file to create
@@ -72,7 +91,7 @@ public class TransformFileInZip {
    *          transform, cannot be a directory or a zip file
    * @param transformer
    *          the function object which will be applied to the target file
-   * @throws IOException 
+   * @throws IOException
    */
   public static boolean transformFile(ZipFile zipFile,
       String targetZipFilePath, String fileToTransformPath,
@@ -116,7 +135,7 @@ public class TransformFileInZip {
   /**
    * Recursive method which digs into the relevant war or modifies the target
    * file.
-   * 
+   *
    * @param zipInputStream
    * @param zipOutputStream
    * @param fileToTransformPath
@@ -137,10 +156,8 @@ public class TransformFileInZip {
         String zipEntryName = zipEntry.getName();
         zipOutputStream.putNextEntry(new ZipEntry(zipEntryName));
         if (fileToTransformPath.startsWith(zipEntryName)) {
-          if (fileToTransformPath.equals(zipEntryName)) { // we are looking for
-                                                          // the file itself, no
-                                                          // more zips to dig in
-            transformer.apply(new ZipGuard(zipInputStream), zipOutputStream);
+          if (fileToTransformPath.equals(zipEntryName)) { // found it!
+            transformer.apply(new ZipInputGuard(zipInputStream), new ZipOutputGuard(zipOutputStream));
             applied = true;
           } else { // zipEntryName is an embedded zip, we need to digging into
                    // more zip files
