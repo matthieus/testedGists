@@ -3,15 +3,16 @@ package testedGists
 import org.specs2._
 import specification.Step
 import java.io._
+import testedGists.TransformFileInZip_java.StreamTransformer
 import testedGists.ZipUtils._
 import java.util.Scanner
 import java.util.zip._
 import com.google.common.io.Files
 
-class TransformFileInZipSpec extends Specification {
+class TransformFileInZip_javaSpec extends Specification {
   def is =
 
-    "TransformFileInZipSpec should"                                                          ^
+    "TransformFileInZip_javaSpec should"                                                          ^
       """remove 'TO_DELETE' from file 'TO_BE_FOUND.txt' in root directory of zip file and
       create new file corresponding to the path given in argument"""                         ! context().e1 ^
       "remove 'TO_DELETE_2' from file 'TO_BE_FOUND_2.txt' in zip file contained in zip file" ! context().e2 ^
@@ -28,7 +29,7 @@ class TransformFileInZipSpec extends Specification {
       the files copied after the transformation. (important for XML transformation as XML
       libs tend to close streams for you)"""                                                 ! context().e9 ^
                                                                                              Step(deleteZipFixture) ^
-    end
+                                                                                             end
 
   val zipFixture =
     safeZipBuilder(File.createTempFile("fixture", "")) {
@@ -82,51 +83,55 @@ class TransformFileInZipSpec extends Specification {
     }
 
     def e1 = this {
-      TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_FOUND.txt",
-          {(input: InputStream, output: OutputStream) =>
+      TransformFileInZip_java.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_FOUND.txt",
+        new StreamTransformer() {
+          override def apply(input: InputStream, output: OutputStream) {
             transformContent(input, output) { (printWriter, content) =>
               printWriter.write(content.replaceAll("TO_DELETE", ""))
             }
           }
-        )
+        })
       contentAsString(new ZipFile(tempFileResult), "TO_BE_FOUND.txt") must_== "blob  blob"
     }
 
     def e2 = this {
-      TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "ZIP_TO_BE_FOUND_2_1.zip/TO_BE_FOUND_2.txt",
-          {(input: InputStream, output: OutputStream) =>
+      TransformFileInZip_java.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "ZIP_TO_BE_FOUND_2_1.zip/TO_BE_FOUND_2.txt",
+        new StreamTransformer() {
+          override def apply(input: InputStream, output: OutputStream) {
             transformContent(input, output) { (printWriter, content) =>
               printWriter.write(content.replaceAll("TO_DELETE_2", ""))
             }
           }
-        )
+        })
       val content = contentAsString(new ZipFile(tempFileResult), "ZIP_TO_BE_FOUND_2_1.zip/TO_BE_FOUND_2.txt")
       content.lines.drop(1).next must_== "second  line"
     }
 
     def e3 = this {
-      TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(),
+      TransformFileInZip_java.transformFile(zipFixture, tempFileResult.getAbsolutePath(),
         "ZIP_TO_BE_FOUND_3_1.zip/somedirectory/ZIP_TO_BE_FOUND_3_2.zip/ZIP_TO_BE_FOUND_3_3.zip/somedirectory/TO_BE_FOUND_3.txt",
-          {(input: InputStream, output: OutputStream) =>
+        new StreamTransformer() {
+          override def apply(input: InputStream, output: OutputStream) {
             transformContent(input, output) { (printWriter, content) =>
               printWriter.write(content.replaceAll("TO_DELETE_3", ""))
             }
           }
-        )
+        })
       val content = contentAsString(new ZipFile(tempFileResult),
         "ZIP_TO_BE_FOUND_3_1.zip/somedirectory/ZIP_TO_BE_FOUND_3_2.zip/ZIP_TO_BE_FOUND_3_3.zip/somedirectory/TO_BE_FOUND_3.txt")
       content.lines.drop(1).next must_== "second  line"
     }
 
     def e4 = this {
-      TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(),
+      TransformFileInZip_java.transformFile(zipFixture, tempFileResult.getAbsolutePath(),
         "ZIP_TO_BE_FOUND_3_1.zip/somedirectory/ZIP_TO_BE_FOUND_3_2.zip/ZIP_TO_BE_FOUND_3_3.zip/somedirectory/TO_BE_FOUND_3.txt",
-          {(input: InputStream, output: OutputStream) =>
+        new StreamTransformer() {
+          override def apply(input: InputStream, output: OutputStream) {
             transformContent(input, output) { (printWriter, content) =>
               printWriter.write(content.replaceAll("TO_DELETE_3", ""))
             }
           }
-        )
+        })
       safeZipBuilder(tempFileExpected) {
         _
         .startEntry("TO_BE_FOUND.txt")
@@ -167,34 +172,37 @@ class TransformFileInZipSpec extends Specification {
     }
 
     def e5 = {
-      TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_NOT_FOUND.txt",
-          {(input: InputStream, output: OutputStream) =>
+      TransformFileInZip_java.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_NOT_FOUND.txt",
+        new StreamTransformer() {
+          override def apply(input: InputStream, output: OutputStream) {
             transformContent(input, output) { (printWriter, content) =>
               printWriter.write(content.replaceAll("TO_DELETE", ""))
             }
           }
-        )
+        })
       tempFileResult.exists must_== false
     }
 
     def e6 = this {
-      TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_FOUND.txt",
-          {(input: InputStream, output: OutputStream) =>
+      TransformFileInZip_java.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_FOUND.txt",
+        new StreamTransformer() {
+          override def apply(input: InputStream, output: OutputStream) {
             transformContent(input, output) { (printWriter, content) =>
               printWriter.write(content.replaceAll("TO_DELETE", ""))
             }
           }
-        ) must_== true
+        }) must_== true
     }
 
     def e7 = {
-      TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_NOT_FOUND.txt",
-          {(input: InputStream, output: OutputStream) =>
+      TransformFileInZip_java.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_NOT_FOUND.txt",
+        new StreamTransformer() {
+          override def apply(input: InputStream, output: OutputStream) {
             transformContent(input, output) { (printWriter, content) =>
               printWriter.write(content.replaceAll("TO_DELETE", ""))
             }
           }
-        ) must_== false
+        }) must_== false
     }
 
     def e8 = {
@@ -244,27 +252,29 @@ class TransformFileInZipSpec extends Specification {
         .buildZip
       }
       println("Creation lasted: "+(System.currentTimeMillis - start))
-      TransformFileInZip.transformFile(largeFixture, tempFileResult.getAbsolutePath(), "ZIP_TO_BE_FOUND_2_1.zip/TO_BE_FOUND_2.txt",
-          {(input: InputStream, output: OutputStream) =>
+      TransformFileInZip_java.transformFile(largeFixture, tempFileResult.getAbsolutePath(), "ZIP_TO_BE_FOUND_2_1.zip/TO_BE_FOUND_2.txt",
+        new StreamTransformer() {
+          override def apply(input: InputStream, output: OutputStream) {
             transformContent(input, output) { (printWriter, content) =>
               printWriter.write(content.replaceAll("TO_DELETE_2", ""))
             }
           }
-        )
+        })
       val content = contentAsString(new ZipFile(tempFileResult), "ZIP_TO_BE_FOUND_2_1.zip/TO_BE_FOUND_2.txt")
       content.lines.drop(1).next must_== "second  line"
     }
 
     def e9 = {
-       TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_FOUND.txt",
-          {(input: InputStream, output: OutputStream) =>
+       TransformFileInZip_java.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_FOUND.txt",
+        new StreamTransformer() {
+          override def apply(input: InputStream, output: OutputStream) {
             transformContent(input, output) { (printWriter, content) =>
               printWriter.write(content.replaceAll("TO_DELETE", ""))
             }
             input.close
             output.close
           }
-        )
+        })
       contentAsString(new ZipFile(tempFileResult), "ZIP_TO_BE_FOUND_3_1.zip/someFile.txt") must_== "someContent"
     }
   }

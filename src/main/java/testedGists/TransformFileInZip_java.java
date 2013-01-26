@@ -22,9 +22,9 @@ import com.google.common.io.Closeables;
  * Tool to find and transform an arbitrary file in a zip file or nested zip
  * files.
  */
-public class TransformFileInZip {
+public class TransformFileInZip_java {
 
-  private static final Logger logger = LoggerFactory.getLogger(TransformFileInZip.class);
+  private static final Logger logger = LoggerFactory.getLogger(TransformFileInZip_java.class);
 
   /**
    * Allows defining the transformation to apply to the file being transformed
