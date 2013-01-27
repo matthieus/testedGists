@@ -86,8 +86,8 @@ class TransformFileInZip_javaSpec extends Specification {
       TransformFileInZip_java.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_FOUND.txt",
         new StreamTransformer() {
           override def apply(input: InputStream, output: OutputStream) {
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE", "")
             }
           }
         })
@@ -98,8 +98,8 @@ class TransformFileInZip_javaSpec extends Specification {
       TransformFileInZip_java.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "ZIP_TO_BE_FOUND_2_1.zip/TO_BE_FOUND_2.txt",
         new StreamTransformer() {
           override def apply(input: InputStream, output: OutputStream) {
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE_2", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE_2", "")
             }
           }
         })
@@ -112,8 +112,8 @@ class TransformFileInZip_javaSpec extends Specification {
         "ZIP_TO_BE_FOUND_3_1.zip/somedirectory/ZIP_TO_BE_FOUND_3_2.zip/ZIP_TO_BE_FOUND_3_3.zip/somedirectory/TO_BE_FOUND_3.txt",
         new StreamTransformer() {
           override def apply(input: InputStream, output: OutputStream) {
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE_3", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE_3", "")
             }
           }
         })
@@ -127,8 +127,8 @@ class TransformFileInZip_javaSpec extends Specification {
         "ZIP_TO_BE_FOUND_3_1.zip/somedirectory/ZIP_TO_BE_FOUND_3_2.zip/ZIP_TO_BE_FOUND_3_3.zip/somedirectory/TO_BE_FOUND_3.txt",
         new StreamTransformer() {
           override def apply(input: InputStream, output: OutputStream) {
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE_3", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE_3", "")
             }
           }
         })
@@ -175,8 +175,8 @@ class TransformFileInZip_javaSpec extends Specification {
       TransformFileInZip_java.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_NOT_FOUND.txt",
         new StreamTransformer() {
           override def apply(input: InputStream, output: OutputStream) {
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE", "")
             }
           }
         })
@@ -187,8 +187,8 @@ class TransformFileInZip_javaSpec extends Specification {
       TransformFileInZip_java.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_FOUND.txt",
         new StreamTransformer() {
           override def apply(input: InputStream, output: OutputStream) {
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE", "")
             }
           }
         }) must_== true
@@ -198,8 +198,8 @@ class TransformFileInZip_javaSpec extends Specification {
       TransformFileInZip_java.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_NOT_FOUND.txt",
         new StreamTransformer() {
           override def apply(input: InputStream, output: OutputStream) {
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE", "")
             }
           }
         }) must_== false
@@ -255,8 +255,8 @@ class TransformFileInZip_javaSpec extends Specification {
       TransformFileInZip_java.transformFile(largeFixture, tempFileResult.getAbsolutePath(), "ZIP_TO_BE_FOUND_2_1.zip/TO_BE_FOUND_2.txt",
         new StreamTransformer() {
           override def apply(input: InputStream, output: OutputStream) {
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE_2", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE_2", "")
             }
           }
         })
@@ -268,8 +268,8 @@ class TransformFileInZip_javaSpec extends Specification {
        TransformFileInZip_java.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_FOUND.txt",
         new StreamTransformer() {
           override def apply(input: InputStream, output: OutputStream) {
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE", "")
             }
             input.close
             output.close

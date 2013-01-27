@@ -84,8 +84,8 @@ class TransformFileInZipSpec extends Specification {
     def e1 = this {
       TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_FOUND.txt",
           {(input: InputStream, output: OutputStream) =>
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE", "")
             }
           }
         )
@@ -95,8 +95,8 @@ class TransformFileInZipSpec extends Specification {
     def e2 = this {
       TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "ZIP_TO_BE_FOUND_2_1.zip/TO_BE_FOUND_2.txt",
           {(input: InputStream, output: OutputStream) =>
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE_2", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE_2", "")
             }
           }
         )
@@ -108,8 +108,8 @@ class TransformFileInZipSpec extends Specification {
       TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(),
         "ZIP_TO_BE_FOUND_3_1.zip/somedirectory/ZIP_TO_BE_FOUND_3_2.zip/ZIP_TO_BE_FOUND_3_3.zip/somedirectory/TO_BE_FOUND_3.txt",
           {(input: InputStream, output: OutputStream) =>
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE_3", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE_3", "")
             }
           }
         )
@@ -122,8 +122,8 @@ class TransformFileInZipSpec extends Specification {
       TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(),
         "ZIP_TO_BE_FOUND_3_1.zip/somedirectory/ZIP_TO_BE_FOUND_3_2.zip/ZIP_TO_BE_FOUND_3_3.zip/somedirectory/TO_BE_FOUND_3.txt",
           {(input: InputStream, output: OutputStream) =>
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE_3", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE_3", "")
             }
           }
         )
@@ -169,8 +169,8 @@ class TransformFileInZipSpec extends Specification {
     def e5 = {
       TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_NOT_FOUND.txt",
           {(input: InputStream, output: OutputStream) =>
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE", "")
             }
           }
         )
@@ -180,8 +180,8 @@ class TransformFileInZipSpec extends Specification {
     def e6 = this {
       TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_FOUND.txt",
           {(input: InputStream, output: OutputStream) =>
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE", "")
             }
           }
         ) must_== true
@@ -190,8 +190,8 @@ class TransformFileInZipSpec extends Specification {
     def e7 = {
       TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_NOT_FOUND.txt",
           {(input: InputStream, output: OutputStream) =>
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE", "")
             }
           }
         ) must_== false
@@ -246,8 +246,8 @@ class TransformFileInZipSpec extends Specification {
       println("Creation lasted: "+(System.currentTimeMillis - start))
       TransformFileInZip.transformFile(largeFixture, tempFileResult.getAbsolutePath(), "ZIP_TO_BE_FOUND_2_1.zip/TO_BE_FOUND_2.txt",
           {(input: InputStream, output: OutputStream) =>
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE_2", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE_2", "")
             }
           }
         )
@@ -258,8 +258,8 @@ class TransformFileInZipSpec extends Specification {
     def e9 = {
        TransformFileInZip.transformFile(zipFixture, tempFileResult.getAbsolutePath(), "TO_BE_FOUND.txt",
           {(input: InputStream, output: OutputStream) =>
-            transformContent(input, output) { (printWriter, content) =>
-              printWriter.write(content.replaceAll("TO_DELETE", ""))
+            transformContent(input, output) { content =>
+              content.replaceAll("TO_DELETE", "")
             }
             input.close
             output.close

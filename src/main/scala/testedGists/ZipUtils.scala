@@ -15,9 +15,26 @@ object ZipUtils {
     * @param os
     * @param op
     */
-  def transformContent(is: InputStream, os: OutputStream)(transform: (PrintWriter, String) => Unit) {
-    val pw = new PrintWriter(os)
-    try { transform(pw, stringFromInputStream(is)) }
+  def transformContent(is: InputStream, os: OutputStream, charset: String = "utf-8")(f: String => String) {
+    val pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(os, charset)))
+    try { pw.write(f(stringFromInputStream(is))) }
+    finally { pw.flush }
+  }
+
+  /** Return a string version of an InputStream.
+    *
+    * @param is
+    * @param charset
+    * @return the string representation of the given InputStream
+    */
+  def stringFromInputStream(is: InputStream, charset: String = "utf-8"): String = {
+    val scanner = new Scanner(is, charset).useDelimiter("\\A")
+    if (scanner.hasNext) scanner.next else ""
+  }
+
+  def transformStreamedContent(is: InputStream, os: OutputStream, charset: String = "utf-8")(f: (Scanner, PrintWriter) => Unit) {
+    val pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(os, charset)))
+    try { f(new Scanner(is, charset), pw) }
     finally { pw.flush }
   }
 
@@ -50,7 +67,7 @@ object ZipUtils {
       try {
         contentOfFileInZip(zis, targetFileZipPath)
       } catch {
-        // below catching is to add more information
+        // just to add more information
         case e: FileNotFoundException => {
           val msg = "Zip path '"+targetFileZipPath+"'' not found in file '"+zipFile.getName+"'"
           logger.error(msg)
@@ -60,24 +77,13 @@ object ZipUtils {
     }
   }
 
-  /** Return a string version of an InputStream.
-    *
-    * @param is
-    * @param charset
-    * @return the string representation of the given InputStream
-    */
-  def stringFromInputStream(is: InputStream, charset: String = "utf-8"): String = {
-    val scanner = new Scanner(is, charset).useDelimiter("\\A")
-    if (scanner.hasNext) scanner.next else ""
-  }
-
-  /** Cute method to print to a given OutputStream using a PrintWriter.
+  /** Prints to a given OutputStream using a PrintWriter.
     *
     * @param os
     * @param op
     */
-  def printToStream(os: OutputStream)(f: java.io.PrintWriter => Unit) {
-    val p = new java.io.PrintWriter(os)
+  def printToStream(os: OutputStream, charset: String = "utf-8")(f: java.io.PrintWriter => Unit) {
+    val p = new java.io.PrintWriter(new BufferedWriter(new OutputStreamWriter(os, charset)))
     try { f(p) }
     finally { p.flush }
   }

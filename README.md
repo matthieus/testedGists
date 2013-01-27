@@ -2,7 +2,7 @@ testedGists
 ===========
 
 Code that I don't want to write again. Enough lines to deserve tests, but not enough for a full blown library.
-Please copy/paste if interested.
+Copy/paste if interested.
 
 Some general remarks:
 - mainly Scala, but also some Java
