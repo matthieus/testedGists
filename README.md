@@ -1,4 +1,4 @@
-testedGists
+testedGists (work in progress)
 ===========
 
 Code that I don't want to write again. Enough lines to deserve tests, but not enough for a full blown library.

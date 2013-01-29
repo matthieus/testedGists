@@ -17,7 +17,7 @@ object ZipUtils {
     */
   def transformContent(is: InputStream, os: OutputStream, charset: String = "utf-8")(f: String => String) {
     val pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(os, charset)))
-    try { pw.write(f(stringFromInputStream(is))) }
+    try { pw.write(f(stringFromInputStream(is, charset))) }
     finally { pw.flush }
   }
 
