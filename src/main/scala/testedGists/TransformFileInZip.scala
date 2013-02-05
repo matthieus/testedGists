@@ -110,7 +110,7 @@ object TransformFileInZip {
         if (fileToTransformPath.equals(zipEntryName)) { // found it!
           transformer(new ZipInputGuard(zipInputStream), new ZipOutputGuard(zipOutputStream))
           applied = true
-        } else { // zipEntryName is an embedded zip, we need to digging into
+        } else { // zipEntryName is an embedded zip, we need to dig into
                  // more zip files
           applied = transformZipStream(new ZipInputStream(zipInputStream),
               new ZipOutputStream(zipOutputStream),
