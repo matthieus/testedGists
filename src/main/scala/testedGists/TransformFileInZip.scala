@@ -1,23 +1,9 @@
 package testedGists
 
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.FilterInputStream
-import java.io.FilterOutputStream
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
-import java.util.zip.ZipEntry
-import java.util.zip.ZipFile
-import java.util.zip.ZipInputStream
-import java.util.zip.ZipOutputStream
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
-import com.google.common.io.ByteStreams
-import com.google.common.io.Closeables
-
+import java.io._
+import java.util.zip._
+import org.slf4j._
+import com.google.common.io._
 import ZipUtils._
 
 /** Tool to find and transform an arbitrary file in a zip file or nested zip files. */
