@@ -124,7 +124,7 @@ object ZipUtils {
     * @return the value returned by the code function
     */
   def safeClose[A <: Closeable, B](resource: A)(f: A => B): B = {
-    safeUse(resource)(_.close)(f)
+    safeUse(resource)(res => if (res != null) res.close)(f)
   }
 
   /** Given two zip files, find the first file differing between the 2 zip files. The order of the files in the zip matters.
