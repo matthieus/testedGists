@@ -38,17 +38,15 @@ object ZipUtils {
     finally { pw.flush }
   }
 
-  /** Returns the content of a target file as a string. Uses the Zip path where embedded zip files are considered as directories.
+  /** Returns the content of a file within a target zip file as a string. Uses the Zip path where embedded zip files are considered as directories.
     * Keep in mind that the file you are targeting could be large, in that case using a streaming method to access the file would
     * be a more memory friendly method.
     *
     * @param zipFile
     * @param targetFileZipPath
     * @return the content of the target file as a String
-    * @throw
     */
   def contentAsString(zipFile: ZipFile, targetFileZipPath: String, charset: String = "utf-8"): String = {
-    val zis = new ZipInputStream(new FileInputStream(zipFile.getName()))
     def contentOfFileInZip(zis: ZipInputStream, targetFileZipPath: String): String = {
       val zipEntry = zis.getNextEntry
       if (zipEntry == null)
@@ -63,11 +61,11 @@ object ZipUtils {
         }
       }
     }
-    safeClose(zis) { zis =>
+    safeClose(new ZipInputStream(new FileInputStream(zipFile.getName()))) { zis =>
       try {
         contentOfFileInZip(zis, targetFileZipPath)
       } catch {
-        // just to add more information
+        // just to add some infos to the msg
         case e: FileNotFoundException => {
           val msg = "Zip path '"+targetFileZipPath+"'' not found in file '"+zipFile.getName+"'"
           logger.error(msg)
@@ -89,7 +87,8 @@ object ZipUtils {
   }
 
   /** Safely use a resource by executing the given cleanup method in a finally.
-    * Exception handling is done in a way so an exception thrown from the cleanup code won't obfuscate the main function.
+    * Exception handling is done in a way so an exception thrown from the cleanup code won't obfuscate the 
+    * main function's exception.
     *
     * @param resource
     * @param cleanUp

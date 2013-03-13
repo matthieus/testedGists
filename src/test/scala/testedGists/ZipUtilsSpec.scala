@@ -1,9 +1,11 @@
 package testedGists
 
 import org.specs2._
+import specification.Step
 import testedGists.ZipUtils._
 import java.io._
 import org.specs2.mock._
+import java.util.zip._
 
 class ZipUtilsSpec extends Specification {
   def is =
@@ -28,6 +30,14 @@ class ZipUtilsSpec extends Specification {
     "preserve utf-8 encoding" ! c3().e3_2^
     "utf-8 is the default encoding" ! c3().e3_3^
     "preserve ISO-8859-1 encoding" ! c3().e3_4^
+  p^
+  "findFirstDifferentFilesAsPaths function should" ^
+    "return None when both input zip files are identical" ! c4().e4_1^
+    "return (null, path) when one file found in second zip is not found in first" ! c4().e4_2^
+    "return (path, null) when one file found in first zip is not found in second" ! c4().e4_3^
+    "return (path, path) when content is differing for a same path in complex fixtures" ! c4().e4_4^
+    "return (path1, path2) when a file name is differing in complex fixtures" ! c4().e4_5^
+   Step(deleteZipFixture) ^
   end
 
   object c1 extends Mockito {
@@ -116,16 +126,9 @@ class ZipUtilsSpec extends Specification {
       .endEntry
       .buildZip
     }
-
-  case class c2() extends specification.After{
-
-    val tempFileResult = File.createTempFile("result", "")
-    val tempFileExpected = File.createTempFile("expected", "")
-
-    override def after {
-      tempFileResult.delete
-      tempFileExpected.delete
-    }
+  def deleteZipFixture { new File(zipFixture.getName).delete }
+  
+  case class c2() {
 
     def e2_1 = contentAsString(zipFixture, "TO_BE_FOUND.txt") must_== "some content"
 
@@ -168,6 +171,161 @@ class ZipUtilsSpec extends Specification {
         s.replaceAll("Unë mund të ha qelq dhe nuk më gjen gjë.", "Falsches Üben von Xylophonmusik quält jeden größeren Zwerg")
       }
       output.toString("ISO-8859-1") must_== "Falsches Üben von Xylophonmusik quält jeden größeren Zwerg"
+    }
+  }
+
+  case class c4() {
+
+    def e4_1 = findFirstDifferentFilesAsPaths(zipFixture, zipFixture) must_== None
+
+    def e4_2 = {
+      val f1 = File.createTempFile("prefix_f1", "")
+      val f2 = File.createTempFile("prefix_f2", "")
+      val z1 = safeZipBuilder(f1) {
+        _
+        .startEntry("common.txt")
+          .print("some content")
+        .endEntry
+        .buildZip
+      }
+      val z2 = safeZipBuilder(f2) {
+        _
+        .startEntry("common.txt")
+          .print("some content")
+        .endEntry
+        .startEntry("TO_BE_FOUND.txt")
+          .print("some content")
+        .endEntry
+        .buildZip
+      }
+      try {
+        findFirstDifferentFilesAsPaths(z1, z2) must_== Some(("null", "TO_BE_FOUND.txt"))
+      } finally {
+        f1.delete
+        f2.delete
+      }
+    }
+
+    def e4_3 = {
+      val f1 = File.createTempFile("prefix_f1", "")
+      val f2 = File.createTempFile("prefix_f2", "")
+      val z1 = safeZipBuilder(f2) {
+        _
+        .startEntry("common.txt")
+          .print("some content")
+        .endEntry
+        .startEntry("TO_BE_FOUND.txt")
+          .print("some content")
+        .endEntry
+        .buildZip
+      }
+      val z2 = safeZipBuilder(f1) {
+        _
+        .startEntry("common.txt")
+          .print("some content")
+        .endEntry
+        .buildZip
+      }
+      try {
+        findFirstDifferentFilesAsPaths(z1, z2) must_== Some(("TO_BE_FOUND.txt", "null"))
+      } finally {
+        f1.delete
+        f2.delete
+      }
+    }
+
+    def e4_4 = {
+      val fixture2 = File.createTempFile("fixture2", "")
+      val zipFixture2 = 
+          safeZipBuilder(fixture2) {
+        _
+        .startEntry("TO_BE_FOUND.txt")
+          .print("some content")
+        .endEntry
+        .startEntry("someFile.txt")
+          .print("some content")
+        .endEntry
+        .startZipEntry("ZIP_TO_BE_FOUND_2_1.zip")
+          .startEntry("someFile.txt")
+            .print("some content")
+          .endEntry
+          .startEntry("TO_BE_FOUND_2.txt")
+            .print("""|first line
+                      |second line""".stripMargin)
+          .endEntry
+        .endEntry
+        .startZipEntry("ZIP_TO_BE_FOUND_3_1.zip")
+          .startZipEntry("somedirectory/ZIP_TO_BE_FOUND_3_2.zip")
+            .startZipEntry("ZIP_TO_BE_FOUND_3_3.zip")
+              .startEntry("someFile.txt")
+                .print("some content")
+              .endEntry
+              .startEntry("somedirectory/TO_BE_FOUND_3.txt")
+                .print("""|first line
+                          |second line is DIFFERENT!!!""".stripMargin)
+              .endEntry
+            .endEntry
+          .endEntry
+          .startEntry("someFile.txt")
+            .print("some content")
+          .endEntry
+        .endEntry
+        .buildZip
+      }
+      try{
+        findFirstDifferentFilesAsPaths(zipFixture, zipFixture2) must_== 
+          Some(("ZIP_TO_BE_FOUND_3_1.zip/somedirectory/ZIP_TO_BE_FOUND_3_2.zip/ZIP_TO_BE_FOUND_3_3.zip/somedirectory/TO_BE_FOUND_3.txt",
+                "ZIP_TO_BE_FOUND_3_1.zip/somedirectory/ZIP_TO_BE_FOUND_3_2.zip/ZIP_TO_BE_FOUND_3_3.zip/somedirectory/TO_BE_FOUND_3.txt"))
+      } finally {
+        fixture2.delete
+      }
+    }
+
+    def e4_5 = {
+      val fixture2 = File.createTempFile("fixture2", "")
+      val zipFixture2 = 
+          safeZipBuilder(fixture2) {
+        _
+        .startEntry("TO_BE_FOUND.txt")
+          .print("some content")
+        .endEntry
+        .startEntry("someFile.txt")
+          .print("some content")
+        .endEntry
+        .startZipEntry("ZIP_TO_BE_FOUND_2_1.zip")
+          .startEntry("someFile.txt")
+            .print("some content")
+          .endEntry
+          .startEntry("TO_BE_FOUND_2.txt")
+            .print("""|first line
+                      |second line""".stripMargin)
+          .endEntry
+        .endEntry
+        .startZipEntry("ZIP_TO_BE_FOUND_3_1.zip")
+          .startZipEntry("somedirectory/ZIP_TO_BE_FOUND_3_2.zip")
+            .startZipEntry("ZIP_TO_BE_FOUND_3_3.zip")
+              .startEntry("someFile.txt")
+                .print("some content")
+              .endEntry
+              .startEntry("somedirectory/TO_BE_FOUND_3_DIFFERENT.txt")
+                .print("""|first line
+                          |second line""".stripMargin)
+              .endEntry
+            .endEntry
+          .endEntry
+          .startEntry("someFile.txt")
+            .print("some content")
+          .endEntry
+        .endEntry
+        .buildZip
+      }
+      try{
+        findFirstDifferentFilesAsPaths(zipFixture, zipFixture2) must_== 
+          Some(("ZIP_TO_BE_FOUND_3_1.zip/somedirectory/ZIP_TO_BE_FOUND_3_2.zip/ZIP_TO_BE_FOUND_3_3.zip/somedirectory/TO_BE_FOUND_3.txt",
+                "ZIP_TO_BE_FOUND_3_1.zip/somedirectory/ZIP_TO_BE_FOUND_3_2.zip/ZIP_TO_BE_FOUND_3_3.zip/somedirectory/TO_BE_FOUND_3_DIFFERENT.txt"))
+      } finally {
+        fixture2.delete
+      }
     }
   }
 }

@@ -3,13 +3,21 @@ package testedGists
 import java.io._
 import java.util.zip._
 import org.slf4j._
-import com.google.common.io._
 import ZipUtils._
 
 /** Tool to find and transform an arbitrary file in a zip file or nested zip files. */
 object TransformFileInZip {
 
   private val logger = LoggerFactory.getLogger(this.getClass())
+
+  def copy(from: InputStream, to: OutputStream) {
+    val buffer1 = new Array[Byte](1024)
+    Stream.continually {
+      val read1 = from.read(buffer1, 0, buffer1.length)
+      to.write(buffer1, 0, read1)
+      read1 != -1
+    }.takeWhile(_ == true)
+  }
 
   /** Wrapper around a ZipInputStream to avoid the xml parsing to close the stream */
   class ZipInputGuard(is: InputStream) extends FilterInputStream(is) {
@@ -52,8 +60,9 @@ object TransformFileInZip {
     *          transform, cannot be a directory or a zip file
     * @param transformer
     *          the function object which will be applied to the target file
+    * @return true if the fileToTransform was transformed, false otherwise
     */
-  def transformFile(zipFile: ZipFile, targetZipFilePath: String, fileToTransformPath: String,
+  def transformFile(zipFile: ZipFile, targetZipFilePath: String, fileToTransformPath: String)(
       transformer: (InputStream, OutputStream) => Unit): Boolean = {
     val start = System.currentTimeMillis()
     logger.debug("Processing zip file \"" + zipFile.getName() + "\".")
@@ -105,7 +114,7 @@ object TransformFileInZip {
         }
       } else {
         if (!zipEntry.isDirectory())
-          ByteStreams.copy(zipInputStream, zipOutputStream)
+          copy(zipInputStream, zipOutputStream)
       }
       zipOutputStream.closeEntry()
       zipInputStream.closeEntry()
