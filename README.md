@@ -59,4 +59,6 @@ TransformFileInZip.transformFile(zipFileInput, transformedZipFilePath, zipPathTo
 }
 ```
 
-+ others
+and others.
+
+ZipUtils.scala contains small utility stuff and TransformFileInZip.scala contains the zip file patching feature.
