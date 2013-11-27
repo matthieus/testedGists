@@ -7,9 +7,9 @@ Some general remarks:
 - won't be maintained
 - won't keep any backward compatibility
 - but you can take a snapshot as of today and integrate anything you like in your own code
-- if you take something, consider taking some tests with it
-- the (amazing) specs2 library is used for the tests
-- the Scala code uses Exceptions by opposition to Option or Either constructs
+- if you take something, consider copy/pasting some tests with it
+- specs2 library is used for the tests
+- the Scala code uses Exceptions by opposition to Try or Either constructs
 
 Some code samples (see test code for complete behaviour) :
 
