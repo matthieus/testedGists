@@ -1,12 +1,12 @@
-testedGists (work in progress)
+testedGists
 ===========
 
-Code that I don't want to write again. Enough lines to deserve tests, but not enough for a full blown library.
+testedGists because the files in this project are like Gists with tests.
 
 Some general remarks:
 - won't be maintained
 - won't keep any backward compatibility
-- but you can take a snapshot as of today and integrate anything you like in your own code
+- but you can take a snapshot as of today and copy anything you like in your own code
 - if you take something, consider copy/pasting some tests with it
 - specs2 library is used for the tests
 - the Scala code uses Exceptions by opposition to Try or Either constructs
